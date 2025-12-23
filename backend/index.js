@@ -19,39 +19,38 @@ const app = express();
 const server = http.createServer(app);
 
 /* =======================
-   CORS ORIGIN (IMPORTANT)
+   FRONTEND URL (ENV)
    ======================= */
-// frontend URL ko ENV se lo
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL =
+  process.env.FRONTEND_URL || "http://localhost:5173";
 
 /* =======================
    SOCKET.IO SETUP
    ======================= */
 const io = new Server(server, {
   cors: {
-    origin: ["https://food-delivery-theta-puce-46.vercel.app"],
+    origin: FRONTEND_URL,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
   }
 });
 
-
-// io instance app me store (routes me use karne ke liye)
+// make io available in routes
 app.set("io", io);
 
 /* =======================
    MIDDLEWARES
    ======================= */
-app.use(cors({
-  origin: [
-    "https://food-delivery-theta-puce-46.vercel.app"
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(
+  cors({
+    origin: FRONTEND_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
 
-// VERY IMPORTANT (preflight fix)
+// Preflight request fix
 app.options("*", cors());
 
 app.use(express.json());
@@ -84,6 +83,7 @@ server.listen(PORT, async () => {
   try {
     await connectDb();
     console.log(`✅ Server started on port ${PORT}`);
+    console.log(`✅ Allowed frontend: ${FRONTEND_URL}`);
   } catch (error) {
     console.error("❌ DB connection failed:", error.message);
   }
