@@ -21,18 +21,18 @@ const server = http.createServer(app);
 /* =======================
    ALLOWED FRONTEND ORIGINS
    ======================= */
-const allowedOrigins = [
-  "https://food-delivery-sepia-two.vercel.app",
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
   "https://food-delivery-theta-puce-46.vercel.app",
-  "http://localhost:5173"
+  "https://food-delivery-sepia-two.vercel.app"
 ];
 
 /* =======================
-   SOCKET.IO SETUP
+   SOCKET.IO
    ======================= */
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: ALLOWED_ORIGINS,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"]
   }
@@ -43,23 +43,17 @@ app.set("io", io);
 /* =======================
    MIDDLEWARES
    ======================= */
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Postman / server calls
+app.use(
+  cors({
+    origin: ALLOWED_ORIGINS,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-// Preflight fix
-app.options("*", cors());
+// ✅ EXPRESS v5 SAFE PREFLIGHT FIX
+app.options(/.*/, cors());
 
 app.use(express.json());
 app.use(cookieParser());
