@@ -6,7 +6,7 @@ import axios from "axios";
 import { serverUrl } from "../App";
 import { useSelector } from "react-redux";
 import { ClipLoader } from "react-spinners";
-import DeliveryBoyTracking from "./DeliveryBoyTracking";
+import DeliveryBoyTracking from "../components/DeliveryBoyTracking";
 import { useSocket } from "../context/SocketContext";
 import {
   BarChart,
