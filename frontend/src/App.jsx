@@ -30,11 +30,12 @@ import useGetItemsByCity from "./hooks/useGetItemsByCity";
 import useGetMyOrders from "./hooks/useGetMyOrders";
 import useUpdateLocation from "./hooks/useUpdateLocation";
 
+
 // SERVER URL
 export const serverUrl =
   import.meta.env.MODE === "development"
     ? "http://localhost:8000"
-    : "https://food-delivery-backend-egmz.onrender.com";
+    : import.meta.env.VITE_BACKEND_URL;
 
 function App() {
   const { userData } = useSelector((state) => state.user);
