@@ -19,38 +19,46 @@ const app = express();
 const server = http.createServer(app);
 
 /* =======================
-   FRONTEND URL (ENV)
+   ALLOWED FRONTEND ORIGINS
    ======================= */
-const FRONTEND_URL =
-  process.env.FRONTEND_URL || "http://localhost:5173";
+const allowedOrigins = [
+  "https://food-delivery-sepia-two.vercel.app",
+  "https://food-delivery-theta-puce-46.vercel.app",
+  "http://localhost:5173"
+];
 
 /* =======================
    SOCKET.IO SETUP
    ======================= */
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL,
+    origin: allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    methods: ["GET", "POST", "PUT", "DELETE"]
   }
 });
 
-// make io available in routes
 app.set("io", io);
 
 /* =======================
    MIDDLEWARES
    ======================= */
-app.use(
-  cors({
-    origin: FRONTEND_URL,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-  })
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // Postman / server calls
 
-// Preflight request fix
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// Preflight fix
 app.options("*", cors());
 
 app.use(express.json());
@@ -83,7 +91,6 @@ server.listen(PORT, async () => {
   try {
     await connectDb();
     console.log(`✅ Server started on port ${PORT}`);
-    console.log(`✅ Allowed frontend: ${FRONTEND_URL}`);
   } catch (error) {
     console.error("❌ DB connection failed:", error.message);
   }
