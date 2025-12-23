@@ -1,50 +1,81 @@
-import express from "express"
-import dotenv from "dotenv"
-dotenv.config()
-import connectDb from "./config/db.js"
-import cookieParser from "cookie-parser"
-import authRouter from "./routes/auth.routes.js"
-import cors from "cors"
-import userRouter from "./routes/user.routes.js"
+import express from "express";
+import dotenv from "dotenv";
+import http from "http";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import { Server } from "socket.io";
 
-import itemRouter from "./routes/item.routes.js"
-import shopRouter from "./routes/shop.routes.js"
-import orderRouter from "./routes/order.routes.js"
-import http from "http"
-import { Server } from "socket.io"
-import { socketHandler } from "./socket.js"
+import connectDb from "./config/db.js";
+import authRouter from "./routes/auth.routes.js";
+import userRouter from "./routes/user.routes.js";
+import itemRouter from "./routes/item.routes.js";
+import shopRouter from "./routes/shop.routes.js";
+import orderRouter from "./routes/order.routes.js";
+import { socketHandler } from "./socket.js";
 
-const app=express()
-const server=http.createServer(app)
+dotenv.config();
 
-const io=new Server(server,{
-   cors:{
-    origin:"http://localhost:5173",
-    credentials:true,
-    methods:['POST','GET']
-}
-})
+const app = express();
+const server = http.createServer(app);
 
-app.set("io",io)
+/* =======================
+   CORS ORIGIN (IMPORTANT)
+   ======================= */
+// frontend URL ko ENV se lo
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
+/* =======================
+   SOCKET.IO SETUP
+   ======================= */
+const io = new Server(server, {
+  cors: {
+    origin: FRONTEND_URL,
+    credentials: true,
+    methods: ["GET", "POST"]
+  }
+});
 
+// io instance app me store (routes me use karne ke liye)
+app.set("io", io);
 
-const port=process.env.PORT || 5000
+/* =======================
+   MIDDLEWARES
+   ======================= */
 app.use(cors({
-    origin:"http://localhost:5173",
-    credentials:true
-}))
-app.use(express.json())
-app.use(cookieParser())
-app.use("/api/auth",authRouter)
-app.use("/api/user",userRouter)
-app.use("/api/shop",shopRouter)
-app.use("/api/item",itemRouter)
-app.use("/api/order",orderRouter)
+  origin: FRONTEND_URL,
+  credentials: true
+}));
+app.use(express.json());
+app.use(cookieParser());
 
-socketHandler(io)
-server.listen(port,()=>{
-    connectDb()
-    console.log(`server started at ${port}`)
-})
+/* =======================
+   ROUTES
+   ======================= */
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
+app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
+app.use("/api/shop", shopRouter);
+app.use("/api/item", itemRouter);
+app.use("/api/order", orderRouter);
+
+/* =======================
+   SOCKET HANDLER
+   ======================= */
+socketHandler(io);
+
+/* =======================
+   SERVER START
+   ======================= */
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, async () => {
+  try {
+    await connectDb();
+    console.log(`✅ Server started on port ${PORT}`);
+  } catch (error) {
+    console.error("❌ DB connection failed:", error.message);
+  }
+});
