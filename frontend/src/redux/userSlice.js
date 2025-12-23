@@ -1,3 +1,5 @@
+// Question: Redux User Slice (Socket Removed – Serializable Safe)
+
 import { createSlice } from "@reduxjs/toolkit";
 
 const userSlice = createSlice({
@@ -13,30 +15,39 @@ const userSlice = createSlice({
     totalAmount: 0,
     myOrders: [],
     searchItems: null
+    // ❌ socket REMOVED
   },
   reducers: {
     setUserData: (state, action) => {
       state.userData = action.payload;
     },
+
     setCurrentCity: (state, action) => {
       state.currentCity = action.payload;
     },
+
     setCurrentState: (state, action) => {
       state.currentState = action.payload;
     },
+
     setCurrentAddress: (state, action) => {
       state.currentAddress = action.payload;
     },
+
     setShopsInMyCity: (state, action) => {
       state.shopInMyCity = action.payload;
     },
+
     setItemsInMyCity: (state, action) => {
       state.itemsInMyCity = action.payload;
     },
 
+    // 🛒 CART
     addToCart: (state, action) => {
       const cartItem = action.payload;
-      const existingItem = state.cartItems.find(i => i.id === cartItem.id);
+      const existingItem = state.cartItems.find(
+        (i) => i.id === cartItem.id
+      );
 
       if (existingItem) {
         existingItem.quantity += cartItem.quantity;
@@ -52,7 +63,8 @@ const userSlice = createSlice({
 
     updateQuantity: (state, action) => {
       const { id, quantity } = action.payload;
-      const item = state.cartItems.find(i => i.id === id);
+      const item = state.cartItems.find((i) => i.id === id);
+
       if (item) item.quantity = quantity;
 
       state.totalAmount = state.cartItems.reduce(
@@ -62,7 +74,10 @@ const userSlice = createSlice({
     },
 
     removeCartItem: (state, action) => {
-      state.cartItems = state.cartItems.filter(i => i.id !== action.payload);
+      state.cartItems = state.cartItems.filter(
+        (i) => i.id !== action.payload
+      );
+
       state.totalAmount = state.cartItems.reduce(
         (sum, i) => sum + i.price * i.quantity,
         0
@@ -73,6 +88,7 @@ const userSlice = createSlice({
       state.totalAmount = action.payload;
     },
 
+    // 📦 ORDERS
     setMyOrders: (state, action) => {
       state.myOrders = action.payload;
     },
@@ -83,20 +99,30 @@ const userSlice = createSlice({
 
     updateOrderStatus: (state, action) => {
       const { orderId, shopId, status } = action.payload;
-      const order = state.myOrders.find(o => o._id === orderId);
-      if (order && order.shopOrders?.shop?._id === shopId) {
+      const order = state.myOrders.find(
+        (o) => o._id === orderId
+      );
+
+      if (
+        order &&
+        order.shopOrders &&
+        order.shopOrders.shop._id === shopId
+      ) {
         order.shopOrders.status = status;
       }
     },
 
     updateRealtimeOrderStatus: (state, action) => {
       const { orderId, shopId, status } = action.payload;
-      const order = state.myOrders.find(o => o._id === orderId);
+      const order = state.myOrders.find(
+        (o) => o._id === orderId
+      );
       if (!order) return;
 
       const shopOrder = order.shopOrders.find(
-        so => so.shop._id === shopId
+        (so) => so.shop._id === shopId
       );
+
       if (shopOrder) shopOrder.status = status;
     },
 
