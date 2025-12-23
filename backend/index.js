@@ -29,11 +29,12 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
    ======================= */
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL,
+    origin: ["https://food-delivery-theta-puce-46.vercel.app"],
     credentials: true,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST", "PUT", "DELETE"]
   }
 });
+
 
 // io instance app me store (routes me use karne ke liye)
 app.set("io", io);
@@ -42,9 +43,17 @@ app.set("io", io);
    MIDDLEWARES
    ======================= */
 app.use(cors({
-  origin: FRONTEND_URL,
-  credentials: true
+  origin: [
+    "https://food-delivery-theta-puce-46.vercel.app"
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// VERY IMPORTANT (preflight fix)
+app.options("*", cors());
+
 app.use(express.json());
 app.use(cookieParser());
 
